@@ -43,3 +43,8 @@ main {
   margin-top: 2rem;
   margin-bottom: 2rem;
 }
+
+iframe {
+  /* simulate default iframe background color */
+  background-color: white;
+}

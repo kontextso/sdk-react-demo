@@ -22,20 +22,7 @@ export default function Home() {
   const [conversationId] = useState(() => getRandomId());
   const [userId] = useState(() => getRandomId());
 
-  const [messages, setMessages] = useState<Message[]>(() => [
-    {
-      id: getRandomId(),
-      role: "user",
-      content: "Hello, how are you?",
-      createdAt: new Date()
-    },
-    {
-      id: getRandomId(),
-      role: "assistant",
-      content: "I'm good, thank you!",
-      createdAt: new Date(new Date().getTime() + 1000)
-    }
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
 
   const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -62,7 +49,7 @@ export default function Home() {
         content: "This is a test response from the assistant.",
         createdAt: new Date()
       }]);
-    }, 1000);
+    }, 5000);
   }
   
   return (
@@ -90,6 +77,7 @@ export default function Home() {
                   <InlineAd
                     code={PLACEMENT_CODE}
                     messageId={message.id}
+                    theme={`v2-${theme}`}
                   />
                 </div>
               ))}
@@ -100,7 +88,13 @@ export default function Home() {
         </main>
         <footer>
           <form onSubmit={onSubmit}>
-            <textarea name="message" disabled={isLoading} required rows={5} />
+            <textarea 
+              name="message" 
+              disabled={isLoading} 
+              required 
+              rows={5} 
+              placeholder="Type your message here..."
+            />
             <div>
               <button type="submit" disabled={isLoading}>Send</button>
             </div>
