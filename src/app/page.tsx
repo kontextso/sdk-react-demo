@@ -67,12 +67,17 @@ export default function Home() {
             userId={userId}
             conversationId={conversationId}
             enabledPlacementCodes={[PLACEMENT_CODE]}
+            onEvent={(ev: any) => {
+              console.log(ev);
+            }}
+            /*
             onDebugEvent={(name, state) => {
               if (name === 'format-update-state') {
                 return;
               }
               console.log(name, state);
             }}
+            */
           >
             <div>
               {messages.map((message) => (
