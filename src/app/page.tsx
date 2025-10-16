@@ -65,6 +65,7 @@ export default function Home() {
             messages={messages}
             publisherToken={PUBLISHER_TOKEN}
             userId={userId}
+            userEmail="test@test.com"
             conversationId={conversationId}
             enabledPlacementCodes={[PLACEMENT_CODE]}
             onEvent={(ev: any) => {
