@@ -33,30 +33,33 @@ export default function Home() {
     const message = formData.get("message") as string;
     (e.target as HTMLFormElement).reset();
 
-    setMessages((prevMessages) => [...prevMessages, {
-      id: getRandomId(),
-      role: "user",
-      content: message,
-      createdAt: new Date(),
-      height: 150 + Math.floor(Math.random() * 100)
-    }]);
-
-    // simulate loading chat response with the assistant role
+    // simulate generating image
     setIsLoading(true);
+
+    // last assistant ID
+    const lastId = getRandomId()
+
+    setMessages((prevMessages) => [...prevMessages, 
+      {
+        id: getRandomId(),
+        role: "user",
+        content: message,
+        createdAt: new Date(),
+        height: 150 + Math.floor(Math.random() * 100)
+      },
+      {
+        id: lastId,
+        role: "assistant",
+        content: "...",
+        createdAt: new Date(),
+        height: 150 + Math.floor(Math.random() * 100)
+      }
+    ]);
+    setLastAssistantId(lastId);
 
     setTimeout(() => {
       setIsLoading(false);
-
-      const lastId = getRandomId()
-      setMessages((prevMessages) => [...prevMessages, {
-        id: lastId,
-        role: "assistant",
-        content: "This is a test response from the assistant.",
-        createdAt: new Date(),
-        height: 150 + Math.floor(Math.random() * 100)
-      }]);
-      setLastAssistantId(lastId);
-    }, 1000);
+    }, 3000);
   }
   
   return (
@@ -104,7 +107,7 @@ export default function Home() {
                         background: "white",
                         borderRadius: "8px",
                         padding: "6px",
-                        height: "400px",
+                        minHeight: "100px",
                       }}
                     >
                       {children}
@@ -143,7 +146,7 @@ export default function Home() {
           </AdsProvider>
         </main>
         <footer>
-        {isLoading && <p style={{ textAlign: "center", marginTop: "20px" }}>Loading...</p>}
+        {isLoading && <p style={{ textAlign: "center", marginTop: "20px" }}>Generating image...</p>}
           <form onSubmit={onSubmit} style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
             <textarea 
               name="message" 
