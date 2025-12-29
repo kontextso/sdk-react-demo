@@ -99,6 +99,7 @@ export default function Home() {
                 <InlineAd
                   code={PLACEMENT_CODE}
                   messageId={lastAssistantId}
+                  cssHeight='450px'
                   wrapper={(children) => (
                     <div
                       style={{
