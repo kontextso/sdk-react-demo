@@ -107,7 +107,7 @@ export default function Home() {
                         background: "white",
                         borderRadius: "8px",
                         padding: "6px",
-                        minHeight: "100px",
+                        height: "450px",
                       }}
                     >
                       {children}
