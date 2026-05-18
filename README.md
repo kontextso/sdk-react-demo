@@ -1,4 +1,4 @@
-This is a simple project that demonstrates how to use the Kontex [React SDK](https://docs.kontext.so/sdk/react).
+This is a simple project that demonstrates how to use the Kontext [React SDK](https://docs.kontext.so/sdk/react).
 
 ## Getting Started
 

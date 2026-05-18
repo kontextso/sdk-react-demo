@@ -1,118 +1,115 @@
-"use client";
+'use client'
 
-import { AdsProvider, InlineAd } from "@kontextso/sdk-react";
-import { useState } from "react";
-import { PUBLISHER_TOKEN, PLACEMENT_CODE } from "./constants";
+import { AdsProvider, InlineAd, useAds } from '@kontextso/sdk-react'
+import { useMemo, useState } from 'react'
+import { PUBLISHER_TOKEN, PLACEMENT_CODE } from './constants'
 
 interface Message {
-  id: string;
-  role: string;
-  content: string;
-  createdAt: Date;
+  id: string
+  role: 'user' | 'assistant'
+  content: string
+  createdAt: Date
 }
 
-const getRandomId = () => {
-  return Date.now() + Math.random().toString(36).substring(2, 15);
-}
+const getRandomId = () => Date.now() + Math.random().toString(36).substring(2, 15)
 
 export default function Home() {
-  const [theme, setTheme] = useState<"light" | "dark">("light");
-  const [isLoading, setIsLoading] = useState(false);
+  const [theme, setTheme] = useState<'light' | 'dark'>('light')
 
-  const [conversationId] = useState(() => getRandomId());
-  const [userId] = useState(() => getRandomId());
+  // Session identity is stable for the lifetime of the page.
+  const userId = useMemo(() => getRandomId(), [])
+  const conversationId = useMemo(() => getRandomId(), [])
 
-  const [messages, setMessages] = useState<Message[]>([]);
-
-  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.target as HTMLFormElement);
-    const message = formData.get("message") as string;
-    (e.target as HTMLFormElement).reset();
-
-    setMessages((prevMessages) => [...prevMessages, {
-      id: getRandomId(),
-      role: "user",
-      content: message,
-      createdAt: new Date()
-    }]);
-
-    // simulate loading chat response with the assistant role
-    setIsLoading(true);
-
-    setTimeout(() => {
-      setIsLoading(false);
-
-      setMessages((prevMessages) => [...prevMessages, {
-        id: getRandomId(),
-        role: "assistant",
-        content: "This is a test response from the assistant.",
-        createdAt: new Date()
-      }]);
-    }, 5000);
-  }
-  
   return (
     <div className="container" data-theme={theme}>
       <div className="page">
         <header>
-          <button onClick={() => setTheme(theme === "light" ? "dark" : "light")}>
-            Switch to {theme === "light" ? "Dark" : "Light"} theme
+          <button onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}>
+            Switch to {theme === 'light' ? 'Dark' : 'Light'} theme
           </button>
         </header>
-        <main>
-          <AdsProvider
-            messages={messages}
-            publisherToken={PUBLISHER_TOKEN}
-            userId={userId}
-            userEmail="test@test.com"
-            conversationId={conversationId}
-            enabledPlacementCodes={[PLACEMENT_CODE]}
-            onEvent={(ev: any) => {
-              console.log(ev);
-            }}
-            /*
-            onDebugEvent={(name, state) => {
-              if (name === 'format-update-state') {
-                return;
-              }
-              console.log(name, state);
-            }}
-            */
-          >
-            <div>
-              {messages.map((message) => (
-                <div key={message.id}>
-                  <p><strong>{message.role}</strong>: </p>
-                  <p>{message.content}</p>
-
-                  <InlineAd
-                    code={PLACEMENT_CODE}
-                    messageId={message.id}
-                    theme={`v2-${theme}`}
-                  />
-                </div>
-              ))}
-
-              {isLoading && <p>Loading...</p>}
-          </div>
-          </AdsProvider>
-        </main>
-        <footer>
-          <form onSubmit={onSubmit}>
-            <textarea 
-              name="message" 
-              disabled={isLoading} 
-              required 
-              rows={5} 
-              placeholder="Type your message here..."
-            />
-            <div>
-              <button type="submit" disabled={isLoading}>Send</button>
-            </div>
-          </form>
-        </footer>
+        <AdsProvider
+          publisherToken={PUBLISHER_TOKEN}
+          userId={userId}
+          conversationId={conversationId}
+          onEvent={(ev) => {
+            console.log(ev)
+          }}
+        >
+          <Chat theme={theme} />
+        </AdsProvider>
       </div>
     </div>
-  );
+  )
+}
+
+function Chat({ theme }: { theme: 'light' | 'dark' }) {
+  const { addMessage } = useAds()
+  const [messages, setMessages] = useState<Message[]>([])
+  const [isLoading, setIsLoading] = useState(false)
+  const lastAssistantId = [...messages].reverse().find((m) => m.role === 'assistant')?.id
+
+  function appendMessage(message: Message) {
+    setMessages((prev) => [...prev, message])
+    addMessage(message)
+  }
+
+  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    const form = e.target as HTMLFormElement
+    const formData = new FormData(form)
+    const content = (formData.get('message') as string)?.trim()
+    if (!content) return
+    form.reset()
+
+    appendMessage({
+      id: getRandomId(),
+      role: 'user',
+      content,
+      createdAt: new Date(),
+    })
+
+    // Simulate a chat response from the assistant.
+    setIsLoading(true)
+    setTimeout(() => {
+      appendMessage({
+        id: getRandomId(),
+        role: 'assistant',
+        content: 'This is a test response from the assistant.',
+        createdAt: new Date(),
+      })
+      setIsLoading(false)
+    }, 5000)
+  }
+
+  return (
+    <>
+      <main>
+        <div>
+          {messages.map((m) => (
+            <div key={m.id}>
+              <p>
+                <strong>{m.role}</strong>:
+              </p>
+              <p>{m.content}</p>
+              {m.role === 'assistant' && m.id === lastAssistantId && !isLoading && (
+                <InlineAd code={PLACEMENT_CODE} messageId={m.id} theme={`v2-${theme}`} />
+              )}
+            </div>
+          ))}
+          {isLoading && <p>Loading...</p>}
+        </div>
+      </main>
+      <footer>
+        <form onSubmit={onSubmit}>
+          <textarea name="message" disabled={isLoading} required rows={5} placeholder="Type your message here..." />
+          <div>
+            <button type="submit" disabled={isLoading}>
+              Send
+            </button>
+          </div>
+        </form>
+      </footer>
+    </>
+  )
 }
