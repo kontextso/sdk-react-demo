@@ -159,10 +159,10 @@ export default function Home() {
             onEvent={(ev) => {
               console.log(ev);
 
-              // The upsell flow starts with a click on the ad. Once the ad server marks
-              // upsell ads (publisher:// URL), check `ev.payload.area === "purchase-button"`
-              // here so ordinary ads keep opening their landing page.
-              if (ev.name === "ad.clicked") {
+              // Clicks on our upsell ads come back with a janitor://subscribe URL instead of
+              // a landing page. That is the only signal needed to open the subscribe modal.
+              const url = ev.payload && "url" in ev.payload ? ev.payload.url : "";
+              if (ev.name === "ad.clicked" && url.startsWith("janitor://subscribe")) {
                 setIsUpsellOpen(true);
               }
             }}
