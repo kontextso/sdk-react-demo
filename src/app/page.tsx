@@ -1,18 +1,47 @@
 "use client";
 
-import { AdsProvider, InlineAd } from "@kontextso/sdk-react";
+import { AdsProvider, InlineAd, useAds } from "@kontextso/sdk-react";
 import { useState } from "react";
 import { PUBLISHER_TOKEN, PLACEMENT_CODE } from "./constants";
 
 interface Message {
   id: string;
-  role: string;
+  role: "user" | "assistant";
   content: string;
   createdAt: Date;
 }
 
 const getRandomId = () => {
   return Date.now() + Math.random().toString(36).substring(2, 15);
+}
+
+/**
+ * Upsell dialog, opened when the user clicks an ad. It stands in for your own
+ * subscription flow.
+ */
+function UpsellModal({ onClose }: { onClose: () => void }) {
+  const { trackEvent } = useAds();
+
+  const onSubscribe = () => {
+    // 1. Your app completes the subscription here.
+
+    // 2. Tell Kontext about it. The SDK adds the publisher token, user id
+    //    and session id, so the event type is all you pass.
+    trackEvent("user.subscribed");
+
+    onClose();
+  };
+
+  return (
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="modal" onClick={(e) => e.stopPropagation()}>
+        <h2>Go Premium</h2>
+        <p>Faster replies, better memory and more regenerations.</p>
+        <button type="button" onClick={onSubscribe}>Subscribe</button>
+        <button type="button" onClick={onClose}>Not now</button>
+      </div>
+    </div>
+  );
 }
 
 export default function Home() {
@@ -23,6 +52,7 @@ export default function Home() {
   const [userId] = useState(() => getRandomId());
 
   const [messages, setMessages] = useState<Message[]>([]);
+  const [isUpsellOpen, setIsUpsellOpen] = useState(false);
 
   const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -68,8 +98,13 @@ export default function Home() {
             userEmail="test@test.com"
             conversationId={conversationId}
             enabledPlacementCodes={[PLACEMENT_CODE]}
-            onEvent={(ev: any) => {
+            onEvent={(ev) => {
               console.log(ev);
+
+              // The upsell flow starts with a click on the ad.
+              if (ev.name === "ad.clicked") {
+                setIsUpsellOpen(true);
+              }
             }}
             /*
             onDebugEvent={(name, state) => {
@@ -80,6 +115,7 @@ export default function Home() {
             }}
             */
           >
+            {isUpsellOpen && <UpsellModal onClose={() => setIsUpsellOpen(false)} />}
             <div>
               {messages.map((message) => (
                 <div key={message.id}>
