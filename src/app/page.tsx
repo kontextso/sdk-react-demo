@@ -64,7 +64,7 @@ function AssistantMessage({
     // The edited text is only stored in the app, nothing else changes.
     onChange(message.id, draft);
     setIsEditing(false);
-    trackEvent("user.edited.message", { messageId: message.id });
+    trackEvent("user.edited.message");
   };
 
   const onRerun = () => {
@@ -72,7 +72,7 @@ function AssistantMessage({
     const run = runs + 1;
     setRuns(run);
     onChange(message.id, `This is a better response from the assistant (take ${run}).`);
-    trackEvent("user.clicked.rerun", { messageId: message.id });
+    trackEvent("user.clicked.rerun");
   };
 
   if (isEditing) {
