@@ -101,8 +101,11 @@ export default function Home() {
             onEvent={(ev) => {
               console.log(ev);
 
-              // The upsell flow starts with a click on the ad.
-              if (ev.name === "ad.clicked") {
+              // The upsell flow starts with a click on an upsell ad. Those ads use a
+              // publisher:// URL, so the ad server opens nothing and sends the
+              // purchase-button area instead; ordinary ads open their landing page.
+              const area = ev.payload && "area" in ev.payload ? ev.payload.area : "";
+              if (ev.name === "ad.clicked" && area === "purchase-button") {
                 setIsUpsellOpen(true);
               }
             }}
