@@ -98,7 +98,7 @@ export default function Home() {
             userEmail="test@test.com"
             conversationId={conversationId}
             enabledPlacementCodes={[PLACEMENT_CODE]}
-            onEvent={(ev: { name: string }) => {
+            onEvent={(ev) => {
               console.log(ev);
 
               // The upsell flow starts with a click on the ad.
