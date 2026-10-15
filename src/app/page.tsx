@@ -44,6 +44,60 @@ function UpsellModal({ onClose }: { onClose: () => void }) {
   );
 }
 
+/**
+ * Assistant message with the two upsell triggers. Both keep the message id, so the ad below
+ * stays where it is; only an event goes to the ad server.
+ */
+function AssistantMessage({
+  message,
+  onChange,
+}: {
+  message: Message;
+  onChange: (id: string, content: string) => void;
+}) {
+  const { trackEvent } = useAds();
+  const [isEditing, setIsEditing] = useState(false);
+  const [draft, setDraft] = useState(message.content);
+  const [runs, setRuns] = useState(1);
+
+  const onSave = () => {
+    // The edited text is only stored in the app, nothing else changes.
+    onChange(message.id, draft);
+    setIsEditing(false);
+    trackEvent("user.edited.message", { messageId: message.id });
+  };
+
+  const onRerun = () => {
+    // A new copy of the reply replaces the old one under the same id.
+    const run = runs + 1;
+    setRuns(run);
+    onChange(message.id, `This is a better response from the assistant (take ${run}).`);
+    trackEvent("user.clicked.rerun", { messageId: message.id });
+  };
+
+  if (isEditing) {
+    return (
+      <div>
+        <textarea rows={3} value={draft} onChange={(e) => setDraft(e.target.value)} />
+        <div>
+          <button type="button" onClick={onSave}>Save</button>
+          <button type="button" onClick={() => setIsEditing(false)}>Cancel</button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <p>{message.content}</p>
+      <div>
+        <button type="button" onClick={() => { setDraft(message.content); setIsEditing(true); }}>Edit</button>
+        <button type="button" onClick={onRerun}>Rerun</button>
+      </div>
+    </div>
+  );
+}
+
 export default function Home() {
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [isLoading, setIsLoading] = useState(false);
@@ -53,6 +107,10 @@ export default function Home() {
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [isUpsellOpen, setIsUpsellOpen] = useState(false);
+
+  const updateMessage = (id: string, content: string) => {
+    setMessages((prevMessages) => prevMessages.map((m) => (m.id === id ? { ...m, content } : m)));
+  };
 
   const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -123,7 +181,11 @@ export default function Home() {
               {messages.map((message) => (
                 <div key={message.id}>
                   <p><strong>{message.role}</strong>: </p>
-                  <p>{message.content}</p>
+                  {message.role === "assistant" ? (
+                    <AssistantMessage message={message} onChange={updateMessage} />
+                  ) : (
+                    <p>{message.content}</p>
+                  )}
 
                   <InlineAd
                     code={PLACEMENT_CODE}
