@@ -138,7 +138,7 @@ export default function Home() {
         content: "This is a test response from the assistant.",
         createdAt: new Date()
       }]);
-    }, 5000);
+    }, 1000);
   }
   
   return (
