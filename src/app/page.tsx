@@ -175,16 +175,15 @@ export default function Home() {
             onEvent={(ev) => {
               console.log(ev);
 
-              // A click on an upsell ad opens no tab. Only upsell ads report
-              // area "purchase-button"; the event also carries the landing page
-              // (https://janitorai.com/plus) and your app navigates there.
+              // A click on an upsell ad opens no tab. The event carries the landing page,
+              // https://janitorai.com/plus for all upsell ads; your app navigates there.
               // The demo opens its subscribe modal instead of leaving the page.
               // Keep the ad id (payload.id): it goes with the user.subscribed event.
               if (
                 ev.name === "ad.clicked" &&
                 ev.payload &&
-                "area" in ev.payload &&
-                ev.payload.area === "purchase-button"
+                "url" in ev.payload &&
+                ev.payload.url.startsWith("https://janitorai.com/plus")
               ) {
                 setUpsell({ url: ev.payload.url, adId: ev.payload.id });
               }
