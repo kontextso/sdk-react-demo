@@ -19,15 +19,16 @@ const getRandomId = () => {
  * Upsell dialog, opened when the user clicks an ad. It stands in for your own
  * subscription flow.
  */
-function UpsellModal({ url, onClose }: { url: string; onClose: () => void }) {
+function UpsellModal({ url, adId, onClose }: { url: string; adId: string; onClose: () => void }) {
   const { trackEvent } = useAds();
 
   const onSubscribe = () => {
     // 1. Your app completes the subscription here.
 
     // 2. Tell Kontext about it. The SDK adds the publisher token, user id
-    //    and session id, so the event type is all you pass.
-    trackEvent("user.subscribed");
+    //    and session id. adId is the id from the ad.clicked event, so we can
+    //    tie the purchase to the ad. Leave it out when the user did not come from an ad.
+    trackEvent("user.subscribed", { adId });
 
     onClose();
   };
@@ -107,7 +108,7 @@ export default function Home() {
   const [userId] = useState(() => getRandomId());
 
   const [messages, setMessages] = useState<Message[]>([]);
-  const [upsellUrl, setUpsellUrl] = useState<string | null>(null);
+  const [upsell, setUpsell] = useState<{ url: string; adId: string } | null>(null);
 
   const updateMessage = (id: string, content: string) => {
     setMessages((prevMessages) => prevMessages.map((m) => (m.id === id ? { ...m, content } : m)));
@@ -163,9 +164,14 @@ export default function Home() {
               // A click on an upsell ad opens no tab. The event carries the landing page,
               // https://janitorai.com/plus for all upsell ads; your app navigates there.
               // The demo opens its subscribe modal instead of leaving the page.
-              const url = ev.payload && "url" in ev.payload ? ev.payload.url : "";
-              if (ev.name === "ad.clicked" && url.startsWith("https://janitorai.com/plus")) {
-                setUpsellUrl(url);
+              // Keep the ad id (payload.id): it goes with the user.subscribed event.
+              if (
+                ev.name === "ad.clicked" &&
+                ev.payload &&
+                "url" in ev.payload &&
+                ev.payload.url.startsWith("https://janitorai.com/plus")
+              ) {
+                setUpsell({ url: ev.payload.url, adId: ev.payload.id });
               }
             }}
             /*
@@ -177,7 +183,7 @@ export default function Home() {
             }}
             */
           >
-            {upsellUrl && <UpsellModal url={upsellUrl} onClose={() => setUpsellUrl(null)} />}
+            {upsell && <UpsellModal {...upsell} onClose={() => setUpsell(null)} />}
             <div>
               {messages.map((message) => (
                 <div key={message.id}>
