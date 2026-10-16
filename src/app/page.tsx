@@ -19,7 +19,7 @@ const getRandomId = () => {
  * Upsell dialog, opened when the user clicks an ad. It stands in for your own
  * subscription flow.
  */
-function UpsellModal({ onClose }: { onClose: () => void }) {
+function UpsellModal({ url, onClose }: { url: string; onClose: () => void }) {
   const { trackEvent } = useAds();
 
   const onSubscribe = () => {
@@ -37,6 +37,7 @@ function UpsellModal({ onClose }: { onClose: () => void }) {
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <h2>Go Premium</h2>
         <p>Faster replies, better memory and more regenerations.</p>
+        <p>Your app would navigate to {url}</p>
         <button type="button" onClick={onSubscribe}>Subscribe</button>
         <button type="button" onClick={onClose}>Not now</button>
       </div>
@@ -106,7 +107,7 @@ export default function Home() {
   const [userId] = useState(() => getRandomId());
 
   const [messages, setMessages] = useState<Message[]>([]);
-  const [isUpsellOpen, setIsUpsellOpen] = useState(false);
+  const [upsellUrl, setUpsellUrl] = useState<string | null>(null);
 
   const updateMessage = (id: string, content: string) => {
     setMessages((prevMessages) => prevMessages.map((m) => (m.id === id ? { ...m, content } : m)));
@@ -159,11 +160,12 @@ export default function Home() {
             onEvent={(ev) => {
               console.log(ev);
 
-              // Clicks on our upsell ads come back with a janitor://subscribe URL instead of
-              // a landing page. That is the only signal needed to open the subscribe modal.
+              // A click on an upsell ad opens no tab. The event carries the landing page
+              // (https://janitorai.com/plus for all upsell ads); your app navigates there.
+              // The demo opens its subscribe modal instead of leaving the page.
               const url = ev.payload && "url" in ev.payload ? ev.payload.url : "";
-              if (ev.name === "ad.clicked" && url.startsWith("janitor://subscribe")) {
-                setIsUpsellOpen(true);
+              if (ev.name === "ad.clicked" && url) {
+                setUpsellUrl(url);
               }
             }}
             /*
@@ -175,7 +177,7 @@ export default function Home() {
             }}
             */
           >
-            {isUpsellOpen && <UpsellModal onClose={() => setIsUpsellOpen(false)} />}
+            {upsellUrl && <UpsellModal url={upsellUrl} onClose={() => setUpsellUrl(null)} />}
             <div>
               {messages.map((message) => (
                 <div key={message.id}>
