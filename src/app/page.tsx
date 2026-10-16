@@ -16,6 +16,19 @@ const getRandomId = () => {
 }
 
 /**
+ * The character the user is chatting with. The ad line is written in this
+ * character's voice, so pass the real one. Only id and name are required.
+ */
+const CHARACTER = {
+  id: "char-demo-1",
+  name: "Mira",
+  greeting: "The lantern flickers as I look up from the map. You made it. Ready to go?",
+  persona: "A calm, dry-witted cartographer who guides travellers through a haunted forest.",
+  tags: ["fantasy", "adventure"],
+  isNsfw: false,
+};
+
+/**
  * Upsell dialog, opened when the user clicks an ad. It stands in for your own
  * subscription flow.
  */
@@ -157,6 +170,7 @@ export default function Home() {
             userId={userId}
             userEmail="test@test.com"
             conversationId={conversationId}
+            character={CHARACTER}
             enabledPlacementCodes={[PLACEMENT_CODE]}
             onEvent={(ev) => {
               console.log(ev);
