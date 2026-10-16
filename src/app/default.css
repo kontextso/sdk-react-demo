@@ -45,8 +45,8 @@ main {
 }
 
 iframe {
-  /* simulate default iframe background color */
-  background-color: white;
+  /* the ad frame is transparent, so it sits on the app background in both themes */
+  background-color: var(--background);
 }
 .modal-backdrop {
   position: fixed;

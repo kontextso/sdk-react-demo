@@ -160,11 +160,11 @@ export default function Home() {
             onEvent={(ev) => {
               console.log(ev);
 
-              // A click on an upsell ad opens no tab. The event carries the landing page
-              // (https://janitorai.com/plus for all upsell ads); your app navigates there.
+              // A click on an upsell ad opens no tab. The event carries the landing page,
+              // https://janitorai.com/plus for all upsell ads; your app navigates there.
               // The demo opens its subscribe modal instead of leaving the page.
               const url = ev.payload && "url" in ev.payload ? ev.payload.url : "";
-              if (ev.name === "ad.clicked" && url) {
+              if (ev.name === "ad.clicked" && url.startsWith("https://janitorai.com/plus")) {
                 setUpsellUrl(url);
               }
             }}
@@ -188,10 +188,11 @@ export default function Home() {
                     <p>{message.content}</p>
                   )}
 
+                  {/* "dark" or "light": the ad text colours follow the app theme. */}
                   <InlineAd
                     code={PLACEMENT_CODE}
                     messageId={message.id}
-                    theme={`v2-${theme}`}
+                    theme={theme}
                   />
                 </div>
               ))}
